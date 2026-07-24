@@ -199,7 +199,7 @@ class BudgetStore extends ChangeNotifier {
   double get totalIncome => entries
       .where((entry) => entry.type == EntryType.income)
       .fold(0, (sum, entry) => sum + entry.amount);
-  double get remaining => math.max(0, monthlyBudget - totalSpent);
+  double get remaining => math.max(0.0, monthlyBudget - totalSpent).toDouble();
   double get budgetProgress => (remaining / monthlyBudget).clamp(0, 1);
 
   Map<String, double> get spendingByCategory {
@@ -568,7 +568,7 @@ class _LedgerTile extends StatelessWidget {
               color: const Color(0xFF6E3787),
               borderRadius: BorderRadius.circular(10),
               boxShadow: const [
-                BoxShadow(color: Color(0x40000000), blurRadius: 8, inset: true),
+                BoxShadow(color: Color(0x40000000), blurRadius: 8),
               ],
             ),
             child: Icon(
