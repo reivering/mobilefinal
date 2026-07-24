@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 IconData categoryIcon(String category) {
   switch (category) {
     case 'Food':
-      return Icons.restaurant;
+      return Icons.restaurant_outlined;
     case 'Bills':
       return Icons.receipt_long_outlined;
     case 'Phone':
