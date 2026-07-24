@@ -15,28 +15,6 @@ const _muted = Color(0xFFAEAEB2);
 const _cardBlack = Color(0xFF111111);
 const _green = Color(0xFF00AE67);
 
-class BudgetTrackerApp extends StatelessWidget {
-  const BudgetTrackerApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Budget tracker',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        fontFamily: 'DM Sans',
-        scaffoldBackgroundColor: _canvas,
-        colorScheme: const ColorScheme.dark(
-          primary: _purpleLight,
-          surface: _cardBlack,
-        ),
-      ),
-      home: const BudgetShell(),
-    );
-  }
-}
-
 class BudgetShell extends StatefulWidget {
   const BudgetShell({super.key});
 
@@ -1229,4 +1207,5 @@ Future<void> _showSubscriptionDialog(
   name.dispose();
   amount.dispose();
 }
+
 
