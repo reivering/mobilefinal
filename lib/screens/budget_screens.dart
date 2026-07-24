@@ -125,15 +125,28 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 25),
-              const Text(
-                'Recent',
-                style: TextStyle(
-                  color: _muted,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
+              Row(
+                children: [
+                  const Text(
+                    'Recent',
+                    style: TextStyle(
+                      color: _muted,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const TransactionHistoryScreen(),
+                      ),
+                    ),
+                    child: const Text('View all'),
+                  ),
+                ],
               ),
-              const SizedBox(height: 9),
+              const SizedBox(height: 3),
               ...store.expenses.take(5).map(
                     (entry) => _LedgerTile(
                       entry: entry,
@@ -143,6 +156,162 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class TransactionHistoryScreen extends StatefulWidget {
+  const TransactionHistoryScreen({super.key});
+
+  @override
+  State<TransactionHistoryScreen> createState() =>
+      _TransactionHistoryScreenState();
+}
+
+class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
+  String _category = 'All';
+  DateTime? _date;
+
+  bool _sameDate(DateTime first, DateTime second) =>
+      first.year == second.year &&
+      first.month == second.month &&
+      first.day == second.day;
+
+  @override
+  Widget build(BuildContext context) {
+    final store = context.watch<BudgetStore>();
+    final categories = [
+      'All',
+      ...store.expenses.map((entry) => entry.category).toSet(),
+    ];
+    final entries = store.expenses.where((entry) {
+      final categoryMatches = _category == 'All' || entry.category == _category;
+      final dateMatches = _date == null || _sameDate(entry.date, _date!);
+      return categoryMatches && dateMatches;
+    }).toList();
+
+    return Scaffold(
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [_deepPurple, _canvas],
+            stops: [0.2, 1],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 500),
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(31, 9, 31, 24),
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.arrow_back_ios_new,
+                            color: Colors.white),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'All transactions',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 23,
+                            fontWeight: FontWeight.w700),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  DropdownButtonFormField<String>(
+                    value: _category,
+                    dropdownColor: const Color(0xFF302035),
+                    decoration: InputDecoration(
+                      labelText: 'Category',
+                      filled: true,
+                      fillColor: _cardBlack,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    items: categories
+                        .map((category) => DropdownMenuItem(
+                            value: category, child: Text(category)))
+                        .toList(),
+                    onChanged: (value) =>
+                        setState(() => _category = value ?? 'All'),
+                  ),
+                  const SizedBox(height: 12),
+                  InkWell(
+                    onTap: () async {
+                      final selected = await showDatePicker(
+                        context: context,
+                        initialDate: _date ?? DateTime.now(),
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2035),
+                      );
+                      if (selected != null) setState(() => _date = selected);
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      height: 56,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: _cardBlack,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            _date == null
+                                ? 'All dates'
+                                : fullDate(_date!),
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                          const Spacer(),
+                          const Icon(Icons.calendar_month_outlined,
+                              color: _muted),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (_category != 'All' || _date != null)
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () => setState(() {
+                          _category = 'All';
+                          _date = null;
+                        }),
+                        child: const Text('Clear filters'),
+                      ),
+                    ),
+                  const SizedBox(height: 12),
+                  if (entries.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 50),
+                      child: Center(
+                        child: Text('No transactions found.',
+                            style: TextStyle(color: _muted)),
+                      ),
+                    ),
+                  ...entries.map(
+                    (entry) => _LedgerTile(
+                      entry: entry,
+                      onEdit: () => _showEditEntry(context, entry),
+                      onDelete: () =>
+                          context.read<BudgetStore>().deleteEntry(entry.id),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -833,82 +1002,168 @@ class _SubscriptionTile extends StatelessWidget {
   }
 }
 
-class InsightsScreen extends StatelessWidget {
+class InsightsScreen extends StatefulWidget {
   const InsightsScreen({super.key, required this.onNavigate});
 
   final ValueChanged<int> onNavigate;
 
   @override
+  State<InsightsScreen> createState() => _InsightsScreenState();
+}
+
+class _InsightsScreenState extends State<InsightsScreen> {
+  String _selectedCategory = 'All';
+
+  @override
   Widget build(BuildContext context) {
-    final totals = context.watch<BudgetStore>().spendingByCategory;
-    final palette = [_purpleLight, const Color(0xFF00AE67), const Color(0xFFF2A33A),
-      const Color(0xFF4B8FEA), const Color(0xFFE15B64)];
+    final store = context.watch<BudgetStore>();
+    final allTotals = store.spendingByCategory;
+    final totals = _selectedCategory == 'All'
+        ? allTotals
+        : {
+            if (allTotals.containsKey(_selectedCategory))
+              _selectedCategory: allTotals[_selectedCategory]!,
+          };
+    final palette = [
+      const Color(0xFF14B8A6),
+      const Color(0xFFEC4899),
+      const Color(0xFF6366F1),
+      const Color(0xFFF59E0B),
+      const Color(0xFFFACC15),
+      const Color(0xFF3B82F6),
+    ];
+    final filters = [
+      'All',
+      ...allTotals.keys.take(3),
+    ];
+
     return AppFrame(
       selectedPage: 3,
-      onNavigate: onNavigate,
+      onNavigate: widget.onNavigate,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 500),
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(31, 17, 31, 18),
+            padding: const EdgeInsets.fromLTRB(31, 9, 31, 18),
             children: [
-              const Text('Insights',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700)),
-              const SizedBox(height: 20),
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () => widget.onNavigate(0),
+                    icon: const Icon(Icons.arrow_back_ios_new,
+                        color: Colors.white),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text('Insights',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 23,
+                          fontWeight: FontWeight.w700)),
+                ],
+              ),
+              const SizedBox(height: 12),
               Container(
-                padding: const EdgeInsets.all(22),
+                height: 228,
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
                 decoration: BoxDecoration(
                   color: _cardBlack,
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(25),
                 ),
                 child: Column(
                   children: [
-                    const Text('July 2026',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 18),
-                    SizedBox(
-                      height: 180,
-                      child: CustomPaint(
-                        painter: _DonutPainter(
-                          values: totals.values.toList(),
-                          colors: palette,
-                        ),
-                        child: Center(
-                          child: Text(
-                            money(context.read<BudgetStore>().totalSpent),
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 21,
-                                fontWeight: FontWeight.w800),
-                          ),
-                        ),
+                    PopupMenuButton<String>(
+                      onSelected: (_) {},
+                      color: const Color(0xFF302035),
+                      itemBuilder: (_) => const [
+                        PopupMenuItem(value: 'Jul 2026', child: Text('Jul 2026')),
+                      ],
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('Jul 2026',
+                              style: TextStyle(
+                                  color: _muted,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700)),
+                          SizedBox(width: 4),
+                          Icon(Icons.keyboard_arrow_down, color: _muted),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    ...totals.entries.toList().asMap().entries.map(
-                          (item) => _LegendRow(
-                            color: palette[item.key % palette.length],
-                            label: item.value.key,
-                            value: money(item.value.value),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            height: 120,
+                            width: 120,
+                            child: CustomPaint(
+                              painter: _DonutPainter(
+                                values: totals.values.toList(),
+                                colors: palette,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  money(totals.values
+                                      .fold(0.0, (sum, value) => sum + value)),
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w800),
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: ListView(
+                              shrinkWrap: true,
+                              children: totals.entries.toList().asMap().entries
+                                  .map(
+                                    (item) => _LegendRow(
+                                      color: palette[item.key % palette.length],
+                                      label: item.value.key,
+                                      value: money(item.value.value),
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
+              const SizedBox(height: 12),
+              const Text('Category',
+                  style: TextStyle(
+                      color: _muted, fontSize: 18, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 10,
+                runSpacing: 12,
+                children: filters
+                    .map(
+                      (category) => _CategoryButton(
+                        label: category,
+                        selected: _selectedCategory == category,
+                        onTap: () =>
+                            setState(() => _selectedCategory = category),
+                      ),
+                    )
+                    .toList(),
+              ),
               const SizedBox(height: 20),
-              const Text('Takeaway',
+              const Text('Monthly spending',
                   style: TextStyle(
                       color: _muted, fontSize: 18, fontWeight: FontWeight.w700)),
               const SizedBox(height: 7),
-              const Text(
-                'Food is your largest spending category this month. Set a weekly food limit to protect your remaining budget.',
-                style: TextStyle(color: Colors.white, height: 1.45),
+              Text(
+                _selectedCategory == 'All'
+                    ? 'Choose a category above to focus the chart, or use the ledger filters to inspect specific dates.'
+                    : 'Showing your $_selectedCategory spending for July 2026.',
+                style: const TextStyle(color: Colors.white, height: 1.45),
               ),
             ],
           ),
