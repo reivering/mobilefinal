@@ -738,7 +738,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   List<String> get _categories => _type == EntryType.expense
-      ? const ['Food', 'Bills', 'Phone', 'Transport', 'Rent', 'Entertainment', 'Health']
+      ? const ['Food', 'Bills', 'Phone', 'Transport', 'Rent', 'Entertainment', 'Health', 'Subscription']
       : const ['Savings', 'Salary', 'Investment', 'Part-time'];
 
   void _setType(EntryType type) {
@@ -1004,12 +1004,14 @@ class _DarkInput extends StatelessWidget {
           style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: Colors.white38),
-            filled: true,
-            fillColor: _cardBlack,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(13),
-              borderSide: BorderSide.none,
+            hintStyle: const TextStyle(color: _muted),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFF6E3787)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: _purpleLight, width: 1.5),
             ),
           ),
         ),
@@ -1048,8 +1050,8 @@ class _DatePicker extends StatelessWidget {
             height: 60,
             padding: const EdgeInsets.symmetric(horizontal: 18),
             decoration: BoxDecoration(
-              color: _cardBlack,
-              borderRadius: BorderRadius.circular(13),
+              border: Border.all(color: const Color(0xFF6E3787)),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
               children: [
@@ -1584,6 +1586,8 @@ IconData categoryIcon(String category) {
       return Icons.schedule_outlined;
     case 'Software':
       return Icons.code_outlined;
+    case 'Subscription':
+      return Icons.sync;
     default:
       return Icons.account_balance_wallet_outlined;
   }
