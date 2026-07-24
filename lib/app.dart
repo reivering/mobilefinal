@@ -17,7 +17,7 @@ class BudgetTrackerApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        textTheme: GoogleFonts.dmSansTextTheme(),
+        textTheme: GoogleFonts.dmSansTextTheme(ThemeData.dark().textTheme),
         scaffoldBackgroundColor: _canvas,
         colorScheme: const ColorScheme.dark(
           primary: _purpleLight,
