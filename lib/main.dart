@@ -1,12 +1,18 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  final store = BudgetStore();
+  await store.initialize();
+
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => BudgetStore(),
+    ChangeNotifierProvider.value(
+      value: store,
       child: const BudgetTrackerApp(),
     ),
   );
@@ -111,6 +117,8 @@ class SubscriptionProfile {
 }
 
 class BudgetStore extends ChangeNotifier {
+  Box<dynamic>? _box;
+
   final double monthlyBudget = 800;
   final List<LedgerEntry> _entries = [
     LedgerEntry(
@@ -228,6 +236,7 @@ class BudgetStore extends ChangeNotifier {
         type: type,
       ),
     );
+    _persist();
     notifyListeners();
   }
 
@@ -235,12 +244,14 @@ class BudgetStore extends ChangeNotifier {
     final index = _entries.indexWhere((entry) => entry.id == replacement.id);
     if (index != -1) {
       _entries[index] = replacement;
+      _persist();
       notifyListeners();
     }
   }
 
   void deleteEntry(String id) {
     _entries.removeWhere((entry) => entry.id == id);
+    _persist();
     notifyListeners();
   }
 
@@ -259,6 +270,7 @@ class BudgetStore extends ChangeNotifier {
         category: category,
       ),
     );
+    _persist();
     notifyListeners();
   }
 
@@ -267,14 +279,91 @@ class BudgetStore extends ChangeNotifier {
         _subscriptions.indexWhere((subscription) => subscription.id == replacement.id);
     if (index != -1) {
       _subscriptions[index] = replacement;
+      _persist();
       notifyListeners();
     }
   }
 
   void deleteSubscription(String id) {
     _subscriptions.removeWhere((subscription) => subscription.id == id);
+    _persist();
     notifyListeners();
   }
+
+  Future<void> initialize() async {
+    _box = await Hive.openBox<dynamic>('budget_tracker');
+    _restore();
+  }
+
+  void _restore() {
+    final savedEntries = _box?.get('entries');
+    if (savedEntries is List && savedEntries.isNotEmpty) {
+      _entries
+        ..clear()
+        ..addAll(
+          savedEntries
+              .whereType<Map>()
+              .map((item) => _entryFromMap(Map<String, dynamic>.from(item))),
+        );
+    }
+
+    final savedSubscriptions = _box?.get('subscriptions');
+    if (savedSubscriptions is List && savedSubscriptions.isNotEmpty) {
+      _subscriptions
+        ..clear()
+        ..addAll(
+          savedSubscriptions
+              .whereType<Map>()
+              .map((item) => _subscriptionFromMap(Map<String, dynamic>.from(item))),
+        );
+    }
+
+    _persist();
+  }
+
+  void _persist() {
+    final box = _box;
+    if (box == null) return;
+    box.put('entries', _entries.map(_entryToMap).toList());
+    box.put('subscriptions', _subscriptions.map(_subscriptionToMap).toList());
+  }
+
+  Map<String, dynamic> _entryToMap(LedgerEntry entry) => {
+        'id': entry.id,
+        'title': entry.title,
+        'amount': entry.amount,
+        'category': entry.category,
+        'date': entry.date.toIso8601String(),
+        'type': entry.type.name,
+      };
+
+  LedgerEntry _entryFromMap(Map<String, dynamic> item) => LedgerEntry(
+        id: item['id'] as String,
+        title: item['title'] as String,
+        amount: (item['amount'] as num).toDouble(),
+        category: item['category'] as String,
+        date: DateTime.parse(item['date'] as String),
+        type: item['type'] == EntryType.income.name
+            ? EntryType.income
+            : EntryType.expense,
+      );
+
+  Map<String, dynamic> _subscriptionToMap(SubscriptionProfile subscription) => {
+        'id': subscription.id,
+        'name': subscription.name,
+        'amount': subscription.amount,
+        'renewalDate': subscription.renewalDate.toIso8601String(),
+        'category': subscription.category,
+      };
+
+  SubscriptionProfile _subscriptionFromMap(Map<String, dynamic> item) =>
+      SubscriptionProfile(
+        id: item['id'] as String,
+        name: item['name'] as String,
+        amount: (item['amount'] as num).toDouble(),
+        renewalDate: DateTime.parse(item['renewalDate'] as String),
+        category: item['category'] as String,
+      );
 }
 
 class BudgetShell extends StatefulWidget {
