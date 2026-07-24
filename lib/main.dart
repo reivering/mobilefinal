@@ -203,12 +203,13 @@ class BudgetStore extends ChangeNotifier {
   List<SubscriptionProfile> get subscriptions => List.unmodifiable(_subscriptions);
 
   double get totalSpent =>
-      expenses.fold(0, (sum, entry) => sum + entry.amount);
+      expenses.fold(0.0, (sum, entry) => sum + entry.amount);
   double get totalIncome => entries
       .where((entry) => entry.type == EntryType.income)
-      .fold(0, (sum, entry) => sum + entry.amount);
+      .fold(0.0, (sum, entry) => sum + entry.amount);
   double get remaining => math.max(0.0, monthlyBudget - totalSpent).toDouble();
-  double get budgetProgress => (remaining / monthlyBudget).clamp(0, 1);
+  double get budgetProgress =>
+      (remaining / monthlyBudget).clamp(0.0, 1.0).toDouble();
 
   Map<String, double> get spendingByCategory {
     final totals = <String, double>{};
