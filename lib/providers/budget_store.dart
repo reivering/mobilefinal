@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -96,7 +95,7 @@ class BudgetStore extends ChangeNotifier {
   double get totalIncome => entries
       .where((entry) => entry.type == EntryType.income)
       .fold(0.0, (sum, entry) => sum + entry.amount);
-  double get remaining => math.max(0.0, monthlyBudget - totalSpent).toDouble();
+  double get remaining => (monthlyBudget - totalSpent).toDouble();
   double get budgetProgress =>
       (remaining / monthlyBudget).clamp(0.0, 1.0).toDouble();
 

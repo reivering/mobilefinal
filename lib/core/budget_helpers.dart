@@ -1,4 +1,15 @@
 import 'package:flutter/material.dart';
+import 'constants.dart';
+
+const _shortMonths = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+];
+
+const _fullMonths = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
 
 IconData categoryIcon(String category) {
   switch (category) {
@@ -33,33 +44,45 @@ IconData categoryIcon(String category) {
   }
 }
 
+Color getCategoryColor(String category) {
+  switch (category) {
+    case 'Bills':
+      return const Color(0xFF845EC2);
+    case 'Transport':
+      return const Color(0xFF00C9A7);
+    case 'Rent':
+      return const Color(0xFFF2A33A);
+    case 'Entertainment':
+      return const Color(0xFF4B8FEA);
+    case 'Health':
+      return const Color(0xFFE15B64);
+    case 'Subscription':
+      return const Color(0xFFE862AC);
+    case 'Food':
+      return const Color(0xFF00AE67);
+    case 'Phone':
+      return const Color(0xFFFFC75F);
+    default:
+      return kPurpleLightColor;
+  }
+}
+
 String money(double value, {bool decimals = false}) {
   final showDecimals = decimals || value % 1 != 0;
-  return 'RM ' + value.toStringAsFixed(showDecimals ? 2 : 0);
+  return 'RM ${value.toStringAsFixed(showDecimals ? 2 : 0)}';
 }
 
 String relativeDate(DateTime date) {
-  const today = DateTime(2026, 7, 23);
-  if (date.year == today.year && date.month == today.month && date.day == today.day) {
+  final now = DateTime.now();
+
+  // Field comparison avoids DateTime object equality bugs
+  if (date.year == now.year && date.month == now.month && date.day == now.day) {
     return 'today';
   }
-  return date.day.toString() + ' July';
+
+  return '${date.day} ${_shortMonths[date.month - 1]}';
 }
 
 String fullDate(DateTime date) {
-  const months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ];
-  return date.day.toString() + ' ' + months[date.month - 1] + ' ' + date.year.toString();
+  return '${date.day} ${_fullMonths[date.month - 1]} ${date.year}';
 }

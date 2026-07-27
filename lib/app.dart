@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'screens/budget_screens.dart';
-
-const _canvas = Color(0xFF160A1B);
-const _purpleLight = Color(0xFF964FB6);
-const _cardBlack = Color(0xFF111111);
+import 'core/constants.dart';
+import 'screens/main_shell.dart';
 
 class BudgetTrackerApp extends StatelessWidget {
   const BudgetTrackerApp({super.key});
@@ -17,10 +14,10 @@ class BudgetTrackerApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         fontFamily: 'DM Sans',
-        scaffoldBackgroundColor: _canvas,
+        scaffoldBackgroundColor: kCanvasColor,
         colorScheme: const ColorScheme.dark(
-          primary: _purpleLight,
-          surface: _cardBlack,
+          primary: kPurpleLightColor,
+          surface: kCardBlackColor,
         ),
       ),
       home: const BudgetShell(),
