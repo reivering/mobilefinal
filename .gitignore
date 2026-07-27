@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local backend publishable keys used with --dart-define-from-file.
+/config/backend.json

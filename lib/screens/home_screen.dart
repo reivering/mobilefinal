@@ -3,15 +3,17 @@ import 'package:provider/provider.dart';
 
 import '../core/budget_helpers.dart';
 import '../core/constants.dart';
+import '../models/budget_models.dart';
 import '../providers/budget_store.dart';
 import '../widgets/dialogs.dart';
 import '../widgets/ledger_tile.dart';
 import 'main_shell.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key, required this.onNavigate});
+  const HomeScreen({super.key, required this.onNavigate, this.userName = 'User'});
 
   final ValueChanged<int> onNavigate;
+  final String userName;
 
   @override
   Widget build(BuildContext context) {
@@ -25,8 +27,8 @@ class HomeScreen extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(31, 17, 31, 18),
             children: [
-              const Text(
-                'Hi, user!',
+              Text(
+                'Hi, ${userName.trim().isEmpty ? 'user' : userName.trim()}!',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 24,
@@ -67,7 +69,7 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 9),
-              ...store.expenses.take(5).map(
+              ...store.entries.take(5).map(
                     (entry) => LedgerTile(
                       entry: entry,
                       onEdit: () => showEditEntry(context, entry),
@@ -75,8 +77,78 @@ class HomeScreen extends StatelessWidget {
                           context.read<BudgetStore>().deleteEntry(entry.id),
                     ),
                   ),
+              if (store.subscriptions.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                const Text('Recurring deductions', style: TextStyle(color: kMutedColor, fontSize: 14, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 7),
+                ...store.subscriptions.take(5).map(
+                      (subscription) => _SubscriptionRecentTile(
+                        subscription: subscription,
+                        onTap: () => onNavigate(2),
+                      ),
+                    ),
+              ],
+              if (store.entries.isEmpty && store.subscriptions.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 32),
+                  child: Column(
+                    children: [
+                      const Icon(Icons.receipt_long_outlined, color: kPurpleLightColor, size: 42),
+                      const SizedBox(height: 10),
+                      const Text('Your budget is ready for its first entry.', style: TextStyle(color: kMutedColor)),
+                      const SizedBox(height: 12),
+                      TextButton.icon(
+                        onPressed: () => onNavigate(1),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Add transaction'),
+                      ),
+                    ],
+                  ),
+                ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SubscriptionRecentTile extends StatelessWidget {
+  const _SubscriptionRecentTile({required this.subscription, required this.onTap});
+
+  final SubscriptionProfile subscription;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox(
+        height: 62,
+        child: Row(
+          children: [
+            Container(
+              height: 50,
+              width: 50,
+              decoration: BoxDecoration(color: const Color(0xFF6E3787), borderRadius: BorderRadius.circular(10)),
+              child: Icon(categoryIcon(subscription.category), color: Colors.white, size: 26),
+            ),
+            const SizedBox(width: 13),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(subscription.name, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+                  Text('Subscription · ${relativeDate(subscription.renewalDate)}', style: const TextStyle(color: kMutedColor, fontSize: 14, fontWeight: FontWeight.w600)),
+                ],
+              ),
+            ),
+            Text('-${money(subscription.amount, decimals: true)}', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+            const SizedBox(width: 8),
+            const Icon(Icons.chevron_right_rounded, color: kMutedColor, size: 21),
+          ],
         ),
       ),
     );

@@ -13,6 +13,10 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   provider: ^6.1.5+1
+  supabase_flutter: ^2.16.0
+  clerk_flutter: ^0.0.18-beta
+  clerk_auth: ^0.0.18-beta
+  web: ^1.1.1
 
 dev_dependencies:
   flutter_test:

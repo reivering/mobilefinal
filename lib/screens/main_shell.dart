@@ -1,12 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../core/constants.dart';
+import '../providers/budget_store.dart';
 import 'add_transaction_screen.dart';
 import 'home_screen.dart';
 import 'insights_screen.dart';
+import 'profile_screen.dart';
+import 'savings_screen.dart';
 import 'subscriptions_screen.dart';
 
 class BudgetShell extends StatefulWidget {
-  const BudgetShell({super.key});
+  const BudgetShell({
+    super.key,
+    this.onSignOut,
+    this.userName = 'User',
+    this.userEmail,
+  });
+
+  final Future<void> Function()? onSignOut;
+  final String userName;
+  final String? userEmail;
 
   @override
   State<BudgetShell> createState() => _BudgetShellState();
@@ -21,11 +34,20 @@ class _BudgetShellState extends State<BudgetShell> {
 
   @override
   Widget build(BuildContext context) {
+    final store = context.watch<BudgetStore>();
+    final displayName = store.profileName ?? widget.userName;
     final pages = [
-      HomeScreen(onNavigate: _goTo),
+      HomeScreen(onNavigate: _goTo, userName: displayName),
       AddTransactionScreen(onNavigate: _goTo),
       SubscriptionsScreen(onNavigate: _goTo),
       InsightsScreen(onNavigate: _goTo),
+      ProfileScreen(
+        onNavigate: _goTo,
+        onSignOut: widget.onSignOut,
+        userName: displayName,
+        userEmail: widget.userEmail,
+      ),
+      SavingsScreen(onNavigate: _goTo),
     ];
     return IndexedStack(
       index: _page,
@@ -101,6 +123,14 @@ class _BottomBar extends StatelessWidget {
               icon: Icons.bar_chart_rounded,
               active: selectedPage == 3,
               onTap: () => onNavigate(3)),
+          _NavIcon(
+              icon: Icons.person_outline_rounded,
+              active: selectedPage == 4,
+              onTap: () => onNavigate(4)),
+          _NavIcon(
+              icon: Icons.savings_outlined,
+              active: selectedPage == 5,
+              onTap: () => onNavigate(5)),
         ],
       ),
     );
