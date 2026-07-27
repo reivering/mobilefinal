@@ -94,7 +94,7 @@ class _AuthGateState extends State<AuthGate> {
     _redirecting = true;
     final returnUrl = Uri.base.replace(fragment: '').toString();
     final hostedUrl = Uri.parse(
-      'https://wise-polliwog-39.accounts.dev/sign-in',
+      'https://accounts.budget.cyril.lat/sign-in',
     ).replace(queryParameters: {'redirect_url': returnUrl});
     web.window.location.href = hostedUrl.toString();
   }
