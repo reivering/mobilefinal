@@ -32,8 +32,10 @@ Future<void> showEditEntry(BuildContext context, LedgerEntry entry) async {
     builder: (dialogContext) => StatefulBuilder(
       builder: (context, setState) => AlertDialog(
         backgroundColor: const Color(0xFF302035),
-        title: const Text('Edit transaction',
-            style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Edit transaction',
+          style: TextStyle(color: Colors.white),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -44,8 +46,9 @@ Future<void> showEditEntry(BuildContext context, LedgerEntry entry) async {
             ),
             TextField(
               controller: amount,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               style: const TextStyle(color: Colors.white),
               decoration: const InputDecoration(labelText: 'Amount'),
             ),
@@ -54,8 +57,9 @@ Future<void> showEditEntry(BuildContext context, LedgerEntry entry) async {
               dropdownColor: const Color(0xFF302035),
               isExpanded: true,
               items: categories
-                  .map((item) =>
-                      DropdownMenuItem(value: item, child: Text(item)))
+                  .map(
+                    (item) => DropdownMenuItem(value: item, child: Text(item)),
+                  )
                   .toList(),
               onChanged: (value) =>
                   setState(() => category = value ?? category),
@@ -72,12 +76,12 @@ Future<void> showEditEntry(BuildContext context, LedgerEntry entry) async {
               final value = double.tryParse(amount.text.trim());
               if (value != null && value > 0 && note.text.trim().isNotEmpty) {
                 context.read<BudgetStore>().updateEntry(
-                      entry.copyWith(
-                        title: note.text.trim(),
-                        amount: value,
-                        category: category,
-                      ),
-                    );
+                  entry.copyWith(
+                    title: note.text.trim(),
+                    amount: value,
+                    category: category,
+                  ),
+                );
                 Navigator.pop(dialogContext);
               }
             },
@@ -99,10 +103,16 @@ Future<void> showSubscriptionDialog(
 ) async {
   final nameController = TextEditingController(text: current?.name ?? '');
   final amountController = TextEditingController(
-      text: current != null ? current.amount.toStringAsFixed(2) : '');
+    text: current != null ? current.amount.toStringAsFixed(2) : '',
+  );
 
-  DateTime selectedDate = current?.renewalDate ??
-      DateTime.now().add(const Duration(days: 7));
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  DateTime selectedDate =
+      current?.renewalDate ?? today.add(const Duration(days: 7));
+  if (selectedDate.isBefore(today)) {
+    selectedDate = today;
+  }
 
   const categories = ['Entertainment', 'Software', 'Phone', 'Bills'];
   String selectedCategory = current?.category ?? categories.first;
@@ -271,8 +281,9 @@ Future<void> showSubscriptionDialog(
                   const SizedBox(height: 8),
                   TextField(
                     controller: amountController,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -387,10 +398,15 @@ Future<void> showSubscriptionDialog(
                   ),
                   const SizedBox(height: 18),
 
-                  // First Payment Date Picker
+                  // Next Payment Date Picker
                   const Text(
-                    'First Payment Date',
+                    'Next Payment Date',
                     style: TextStyle(color: kMutedColor, fontSize: 14),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Choose today or a future date for the next renewal.',
+                    style: TextStyle(color: kMutedColor, fontSize: 12),
                   ),
                   const SizedBox(height: 8),
                   InkWell(
@@ -398,8 +414,12 @@ Future<void> showSubscriptionDialog(
                       final picked = await showDatePicker(
                         context: context,
                         initialDate: selectedDate,
-                        firstDate: DateTime(2025),
-                        lastDate: DateTime(2030),
+                        firstDate: today,
+                        lastDate: DateTime(
+                          today.year + 10,
+                          today.month,
+                          today.day,
+                        ),
                       );
                       if (picked != null) {
                         setState(() => selectedDate = picked);
@@ -482,17 +502,32 @@ Future<void> showSubscriptionDialog(
                       onPressed: () {
                         final textName = nameController.text.trim();
                         final valAmount =
-                            double.tryParse(amountController.text.trim()) ?? 0.0;
+                            double.tryParse(amountController.text.trim()) ??
+                            0.0;
 
                         final nameEmpty = textName.isEmpty;
                         final amountInvalid = valAmount <= 0;
+                        final selectedDay = DateTime(
+                          selectedDate.year,
+                          selectedDate.month,
+                          selectedDate.day,
+                        );
+
+                        if (selectedDay.isBefore(today)) {
+                          setState(() {
+                            errorMessage =
+                                'Choose today or a future renewal date';
+                          });
+                          return;
+                        }
 
                         if (nameEmpty || amountInvalid) {
                           setState(() {
                             isNameInvalid = nameEmpty;
                             isAmountInvalid = amountInvalid;
                             if (nameEmpty && amountInvalid) {
-                              errorMessage = 'Please enter both name and amount';
+                              errorMessage =
+                                  'Please enter both name and amount';
                             } else if (nameEmpty) {
                               errorMessage = 'Please enter a subscription name';
                             } else {

@@ -10,7 +10,11 @@ import '../widgets/ledger_tile.dart';
 import 'main_shell.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key, required this.onNavigate, this.userName = 'User'});
+  const HomeScreen({
+    super.key,
+    required this.onNavigate,
+    this.userName = 'User',
+  });
 
   final ValueChanged<int> onNavigate;
   final String userName;
@@ -42,8 +46,8 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _StatCard(
-                      label: 'Income',
-                      value: money(store.totalIncome),
+                      label: 'Cash inflow',
+                      value: money(store.totalIncome, decimals: true),
                       foreground: kPurpleLightColor,
                       background: kCardBlackColor,
                     ),
@@ -52,7 +56,7 @@ class HomeScreen extends StatelessWidget {
                   Expanded(
                     child: _StatCard(
                       label: 'Spent',
-                      value: money(store.totalSpent),
+                      value: money(store.totalSpent, decimals: true),
                       foreground: Colors.black,
                       background: kPurpleColor,
                     ),
@@ -69,7 +73,9 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 9),
-              ...store.entries.take(5).map(
+              ...store.entries
+                  .take(5)
+                  .map(
                     (entry) => LedgerTile(
                       entry: entry,
                       onEdit: () => showEditEntry(context, entry),
@@ -79,9 +85,18 @@ class HomeScreen extends StatelessWidget {
                   ),
               if (store.subscriptions.isNotEmpty) ...[
                 const SizedBox(height: 10),
-                const Text('Recurring deductions', style: TextStyle(color: kMutedColor, fontSize: 14, fontWeight: FontWeight.w700)),
+                const Text(
+                  'Recurring deductions',
+                  style: TextStyle(
+                    color: kMutedColor,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 const SizedBox(height: 7),
-                ...store.subscriptions.take(5).map(
+                ...store.subscriptions
+                    .take(5)
+                    .map(
                       (subscription) => _SubscriptionRecentTile(
                         subscription: subscription,
                         onTap: () => onNavigate(2),
@@ -93,9 +108,16 @@ class HomeScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 32),
                   child: Column(
                     children: [
-                      const Icon(Icons.receipt_long_outlined, color: kPurpleLightColor, size: 42),
+                      const Icon(
+                        Icons.receipt_long_outlined,
+                        color: kPurpleLightColor,
+                        size: 42,
+                      ),
                       const SizedBox(height: 10),
-                      const Text('Your budget is ready for its first entry.', style: TextStyle(color: kMutedColor)),
+                      const Text(
+                        'Your budget is ready for its first entry.',
+                        style: TextStyle(color: kMutedColor),
+                      ),
                       const SizedBox(height: 12),
                       TextButton.icon(
                         onPressed: () => onNavigate(1),
@@ -114,7 +136,10 @@ class HomeScreen extends StatelessWidget {
 }
 
 class _SubscriptionRecentTile extends StatelessWidget {
-  const _SubscriptionRecentTile({required this.subscription, required this.onTap});
+  const _SubscriptionRecentTile({
+    required this.subscription,
+    required this.onTap,
+  });
 
   final SubscriptionProfile subscription;
   final VoidCallback onTap;
@@ -131,8 +156,15 @@ class _SubscriptionRecentTile extends StatelessWidget {
             Container(
               height: 50,
               width: 50,
-              decoration: BoxDecoration(color: const Color(0xFF6E3787), borderRadius: BorderRadius.circular(10)),
-              child: Icon(categoryIcon(subscription.category), color: Colors.white, size: 26),
+              decoration: BoxDecoration(
+                color: const Color(0xFF6E3787),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                categoryIcon(subscription.category),
+                color: Colors.white,
+                size: 26,
+              ),
             ),
             const SizedBox(width: 13),
             Expanded(
@@ -140,14 +172,40 @@ class _SubscriptionRecentTile extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(subscription.name, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
-                  Text('Subscription · ${relativeDate(subscription.renewalDate)}', style: const TextStyle(color: kMutedColor, fontSize: 14, fontWeight: FontWeight.w600)),
+                  Text(
+                    subscription.name,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    'Subscription · ${relativeDate(subscription.renewalDate)}',
+                    style: const TextStyle(
+                      color: kMutedColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ],
               ),
             ),
-            Text('-${money(subscription.amount, decimals: true)}', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+            Text(
+              '-${money(subscription.amount, decimals: true)}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
             const SizedBox(width: 8),
-            const Icon(Icons.chevron_right_rounded, color: kMutedColor, size: 21),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: kMutedColor,
+              size: 21,
+            ),
           ],
         ),
       ),
@@ -211,10 +269,7 @@ class _BudgetSummary extends StatelessWidget {
                     ),
                     Text(
                       'Left',
-                      style: TextStyle(
-                        color: kMutedColor,
-                        fontSize: 14,
-                      ),
+                      style: TextStyle(color: kMutedColor, fontSize: 14),
                     ),
                   ],
                 ),

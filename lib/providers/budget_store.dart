@@ -1,4 +1,3 @@
-
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -25,7 +24,8 @@ class BudgetStore extends ChangeNotifier {
       List.unmodifiable(_entries..sort((a, b) => b.date.compareTo(a.date)));
   List<LedgerEntry> get expenses =>
       entries.where((entry) => entry.type == EntryType.expense).toList();
-  List<SubscriptionProfile> get subscriptions => List.unmodifiable(_subscriptions);
+  List<SubscriptionProfile> get subscriptions =>
+      List.unmodifiable(_subscriptions);
   List<SavingsRecord> get savingsRecords =>
       List.unmodifiable(_savings..sort((a, b) => b.date.compareTo(a.date)));
 
@@ -35,6 +35,23 @@ class BudgetStore extends ChangeNotifier {
   double get totalIncome => entries
       .where((entry) => entry.type == EntryType.income)
       .fold(0.0, (sum, entry) => sum + entry.amount);
+  double get currentMonthIncome => _entries
+      .where(
+        (entry) =>
+            entry.type == EntryType.income && _isCurrentMonth(entry.date),
+      )
+      .fold(0.0, (sum, entry) => sum + entry.amount);
+  double get currentMonthSpent => _entries
+      .where(
+        (entry) =>
+            entry.type == EntryType.expense && _isCurrentMonth(entry.date),
+      )
+      .fold(0.0, (sum, entry) => sum + entry.amount);
+  double get currentMonthOutflow =>
+      currentMonthSpent +
+      subscriptions
+          .where((subscription) => _isCurrentMonth(subscription.renewalDate))
+          .fold(0.0, (sum, subscription) => sum + subscription.amount);
   double get remaining => (monthlyBudget - totalSpent).toDouble();
   double get budgetProgress =>
       (remaining / monthlyBudget).clamp(0.0, 1.0).toDouble();
@@ -42,12 +59,41 @@ class BudgetStore extends ChangeNotifier {
   Map<String, double> get spendingByCategory {
     final totals = <String, double>{};
     for (final entry in expenses) {
-      totals.update(entry.category, (value) => value + entry.amount,
-          ifAbsent: () => entry.amount);
+      totals.update(
+        entry.category,
+        (value) => value + entry.amount,
+        ifAbsent: () => entry.amount,
+      );
     }
     for (final subscription in subscriptions) {
-      totals.update(subscription.category, (value) => value + subscription.amount,
-          ifAbsent: () => subscription.amount);
+      totals.update(
+        subscription.category,
+        (value) => value + subscription.amount,
+        ifAbsent: () => subscription.amount,
+      );
+    }
+    return totals;
+  }
+
+  Map<String, double> get currentMonthSpendingByCategory {
+    final totals = <String, double>{};
+    for (final entry in _entries.where(
+      (entry) => entry.type == EntryType.expense && _isCurrentMonth(entry.date),
+    )) {
+      totals.update(
+        entry.category,
+        (value) => value + entry.amount,
+        ifAbsent: () => entry.amount,
+      );
+    }
+    for (final subscription in subscriptions.where(
+      (subscription) => _isCurrentMonth(subscription.renewalDate),
+    )) {
+      totals.update(
+        subscription.category,
+        (value) => value + subscription.amount,
+        ifAbsent: () => subscription.amount,
+      );
     }
     return totals;
   }
@@ -66,27 +112,48 @@ class BudgetStore extends ChangeNotifier {
 
   double get currentSavings => monthlySavings.values.first;
 
-  bool _sameMonth(DateTime a, DateTime b) => a.year == b.year && a.month == b.month;
+  bool _sameMonth(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month;
 
-  void addSavings({
+  bool _isCurrentMonth(DateTime date) => _sameMonth(date, DateTime.now());
+
+  bool addSavings({
     required double amount,
     required String note,
     required DateTime date,
   }) {
-    _savings.add(SavingsRecord(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      amount: amount,
-      note: note,
-      date: date,
-    ));
+    if (amount <= 0 || amount > totalIncome) {
+      return false;
+    }
+    _savings.add(
+      SavingsRecord(
+        id: DateTime.now().microsecondsSinceEpoch.toString(),
+        amount: amount,
+        note: note,
+        date: date,
+      ),
+    );
     _persist();
     notifyListeners();
+    return true;
   }
 
   void deleteSavings(String id) {
     _savings.removeWhere((record) => record.id == id);
     _persist();
     notifyListeners();
+  }
+
+  bool updateSavings(SavingsRecord replacement) {
+    if (replacement.amount <= 0 || replacement.amount > totalIncome) {
+      return false;
+    }
+    final index = _savings.indexWhere((record) => record.id == replacement.id);
+    if (index == -1) return false;
+    _savings[index] = replacement;
+    _persist();
+    notifyListeners();
+    return true;
   }
 
   void addEntry({
@@ -145,8 +212,9 @@ class BudgetStore extends ChangeNotifier {
   }
 
   void updateSubscription(SubscriptionProfile replacement) {
-    final index =
-        _subscriptions.indexWhere((subscription) => subscription.id == replacement.id);
+    final index = _subscriptions.indexWhere(
+      (subscription) => subscription.id == replacement.id,
+    );
     if (index != -1) {
       _subscriptions[index] = replacement;
       _persist();
@@ -249,9 +317,9 @@ class BudgetStore extends ChangeNotifier {
       _entries
         ..clear()
         ..addAll(
-          savedEntries
-              .whereType<Map>()
-              .map((item) => _entryFromMap(Map<String, dynamic>.from(item))),
+          savedEntries.whereType<Map>().map(
+            (item) => _entryFromMap(Map<String, dynamic>.from(item)),
+          ),
         );
     }
 
@@ -260,9 +328,9 @@ class BudgetStore extends ChangeNotifier {
       _subscriptions
         ..clear()
         ..addAll(
-          savedSubscriptions
-              .whereType<Map>()
-              .map((item) => _subscriptionFromMap(Map<String, dynamic>.from(item))),
+          savedSubscriptions.whereType<Map>().map(
+            (item) => _subscriptionFromMap(Map<String, dynamic>.from(item)),
+          ),
         );
     }
 
@@ -271,9 +339,9 @@ class BudgetStore extends ChangeNotifier {
       _savings
         ..clear()
         ..addAll(
-          savedSavings
-              .whereType<Map>()
-              .map((item) => _savingsFromMap(Map<String, dynamic>.from(item))),
+          savedSavings.whereType<Map>().map(
+            (item) => _savingsFromMap(Map<String, dynamic>.from(item)),
+          ),
         );
     }
 
@@ -315,32 +383,32 @@ class BudgetStore extends ChangeNotifier {
   }
 
   Map<String, dynamic> _entryToMap(LedgerEntry entry) => {
-        'id': entry.id,
-        'title': entry.title,
-        'amount': entry.amount,
-        'category': entry.category,
-        'date': entry.date.toIso8601String(),
-        'type': entry.type.name,
-      };
+    'id': entry.id,
+    'title': entry.title,
+    'amount': entry.amount,
+    'category': entry.category,
+    'date': entry.date.toIso8601String(),
+    'type': entry.type.name,
+  };
 
   LedgerEntry _entryFromMap(Map<String, dynamic> item) => LedgerEntry(
-        id: item['id'] as String,
-        title: item['title'] as String,
-        amount: (item['amount'] as num).toDouble(),
-        category: item['category'] as String,
-        date: DateTime.parse(item['date'] as String),
-        type: item['type'] == EntryType.income.name
-            ? EntryType.income
-            : EntryType.expense,
-      );
+    id: item['id'] as String,
+    title: item['title'] as String,
+    amount: (item['amount'] as num).toDouble(),
+    category: item['category'] as String,
+    date: DateTime.parse(item['date'] as String),
+    type: item['type'] == EntryType.income.name
+        ? EntryType.income
+        : EntryType.expense,
+  );
 
   Map<String, dynamic> _subscriptionToMap(SubscriptionProfile subscription) => {
-        'id': subscription.id,
-        'name': subscription.name,
-        'amount': subscription.amount,
-        'renewalDate': subscription.renewalDate.toIso8601String(),
-        'category': subscription.category,
-      };
+    'id': subscription.id,
+    'name': subscription.name,
+    'amount': subscription.amount,
+    'renewalDate': subscription.renewalDate.toIso8601String(),
+    'category': subscription.category,
+  };
 
   SubscriptionProfile _subscriptionFromMap(Map<String, dynamic> item) =>
       SubscriptionProfile(
@@ -352,16 +420,16 @@ class BudgetStore extends ChangeNotifier {
       );
 
   Map<String, dynamic> _savingsToMap(SavingsRecord record) => {
-        'id': record.id,
-        'amount': record.amount,
-        'note': record.note,
-        'date': record.date.toIso8601String(),
-      };
+    'id': record.id,
+    'amount': record.amount,
+    'note': record.note,
+    'date': record.date.toIso8601String(),
+  };
 
   SavingsRecord _savingsFromMap(Map<String, dynamic> item) => SavingsRecord(
-        id: item['id'] as String,
-        amount: (item['amount'] as num).toDouble(),
-        note: item['note'] as String,
-        date: DateTime.parse(item['date'] as String),
-      );
+    id: item['id'] as String,
+    amount: (item['amount'] as num).toDouble(),
+    note: item['note'] as String,
+    date: DateTime.parse(item['date'] as String),
+  );
 }

@@ -78,4 +78,13 @@ class SavingsRecord {
   final double amount;
   final String note;
   final DateTime date;
+
+  SavingsRecord copyWith({double? amount, String? note, DateTime? date}) {
+    return SavingsRecord(
+      id: id,
+      amount: amount ?? this.amount,
+      note: note ?? this.note,
+      date: date ?? this.date,
+    );
+  }
 }

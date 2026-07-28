@@ -44,15 +44,17 @@ class LedgerTile extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(entry.title,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                    )),
                 Text(
-                  entry.category + ' · ' + relativeDate(entry.date),
+                  entry.title,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  '${entry.category} · ${relativeDate(entry.date)}',
                   style: const TextStyle(
                     color: kMutedColor,
                     fontSize: 16,
@@ -63,9 +65,11 @@ class LedgerTile extends StatelessWidget {
             ),
           ),
           Text(
-            '${entry.type == EntryType.income ? '+' : '-'}${money(entry.amount)}',
+            '${entry.type == EntryType.income ? '+' : '-'}${money(entry.amount, decimals: true)}',
             style: TextStyle(
-              color: entry.type == EntryType.income ? kGreenColor : Colors.white,
+              color: entry.type == EntryType.income
+                  ? kGreenColor
+                  : Colors.white,
               fontSize: 21,
               fontWeight: FontWeight.w700,
             ),

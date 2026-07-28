@@ -8,7 +8,6 @@ import '../providers/budget_store.dart';
 import '../widgets/dialogs.dart';
 import 'main_shell.dart';
 
-
 class SubscriptionsScreen extends StatelessWidget {
   const SubscriptionsScreen({super.key, required this.onNavigate});
 
@@ -20,10 +19,14 @@ class SubscriptionsScreen extends StatelessWidget {
     final subscriptions = store.subscriptions;
 
     // Calculations
-    final totalRecurring =
-        subscriptions.fold(0.0, (sum, item) => sum + item.amount);
-    final subscriptionRatio =
-        (totalRecurring / store.monthlyBudget).clamp(0.0, 1.0);
+    final totalRecurring = subscriptions.fold(
+      0.0,
+      (sum, item) => sum + item.amount,
+    );
+    final subscriptionRatio = (totalRecurring / store.monthlyBudget).clamp(
+      0.0,
+      1.0,
+    );
 
     // Date grouping
     final now = DateTime.now();
@@ -70,7 +73,11 @@ class SubscriptionsScreen extends StatelessWidget {
                         color: kPurpleColor,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.add, color: Colors.white, size: 22),
+                      child: const Icon(
+                        Icons.add,
+                        color: Colors.white,
+                        size: 22,
+                      ),
                     ),
                   ),
                 ],
@@ -80,7 +87,10 @@ class SubscriptionsScreen extends StatelessWidget {
               // Monthly Recurring Overview Card
               Container(
                 height: 120,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 18,
+                ),
                 decoration: BoxDecoration(
                   color: kCardBlackColor,
                   borderRadius: BorderRadius.circular(24),
@@ -197,7 +207,7 @@ class SubscriptionsScreen extends StatelessWidget {
                   padding: EdgeInsets.only(top: 16, bottom: 8),
                   child: Center(
                     child: Text(
-                      'Swipe left on a subscription to cancel or edit',
+                      'Tap to edit · swipe left to cancel',
                       style: TextStyle(color: kMutedColor, fontSize: 13),
                     ),
                   ),
@@ -218,7 +228,7 @@ class GestureButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
-      cursor: SystemMouseCursors.click, 
+      cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
@@ -265,7 +275,11 @@ class _SubscriptionCard extends StatelessWidget {
             color: const Color(0xFFE15B64),
             borderRadius: BorderRadius.circular(18),
           ),
-          child: const Icon(Icons.delete_outline, color: Colors.white, size: 24),
+          child: const Icon(
+            Icons.delete_outline,
+            color: Colors.white,
+            size: 24,
+          ),
         ),
         child: InkWell(
           onTap: onTap,
@@ -344,10 +358,7 @@ class _SubscriptionCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       '${subscription.renewalDate.day} ${monthName(subscription.renewalDate.month)}',
-                      style: const TextStyle(
-                        color: kMutedColor,
-                        fontSize: 12,
-                      ),
+                      style: const TextStyle(color: kMutedColor, fontSize: 12),
                     ),
                   ],
                 ),
@@ -361,8 +372,18 @@ class _SubscriptionCard extends StatelessWidget {
 
   String monthName(int m) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return months[m - 1];
   }

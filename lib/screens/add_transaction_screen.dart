@@ -32,7 +32,15 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   List<String> get _categories => _type == EntryType.expense
-      ? const ['Food', 'Bills', 'Phone', 'Transport', 'Rent', 'Entertainment', 'Health', 'Subscription']
+      ? const [
+          'Food',
+          'Bills',
+          'Phone',
+          'Transport',
+          'Rent',
+          'Entertainment',
+          'Health',
+        ]
       : const ['Savings', 'Salary', 'Investment', 'Part-time'];
 
   void _setType(EntryType type) {
@@ -46,17 +54,33 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     final value = double.tryParse(_amount.text.trim());
     if (value == null || value <= 0 || _note.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter an amount and note first.')),
+        const SnackBar(content: Text('add valid amount and note first')),
+      );
+      return;
+    }
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final selectedDay = DateTime(_date.year, _date.month, _date.day);
+    if (selectedDay.isAfter(today)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Transactions cannot be in the future.')),
       );
       return;
     }
     context.read<BudgetStore>().addEntry(
-          title: _note.text.trim(),
-          amount: value,
-          category: _category,
-          date: _date,
-          type: _type,
-        );
+      title: _note.text.trim(),
+      amount: value,
+      category: _category,
+      date: _date,
+      type: _type,
+    );
+    setState(() {
+      _amount.clear();
+      _note.clear();
+      _type = EntryType.expense;
+      _category = 'Food';
+      _date = DateTime.now();
+    });
     widget.onNavigate(0);
   }
 
@@ -75,21 +99,24 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 children: [
                   IconButton(
                     onPressed: () => widget.onNavigate(0),
-                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new,
+                      color: Colors.white,
+                    ),
                   ),
                   const SizedBox(width: 8),
-                  const Text('Add transaction',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 23,
-                          fontWeight: FontWeight.w700)),
+                  const Text(
+                    'Add transaction',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 23,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
-              _SegmentedChoice(
-                selected: _type,
-                onSelected: _setType,
-              ),
+              _SegmentedChoice(selected: _type, onSelected: _setType),
               const SizedBox(height: 10),
               Container(
                 height: 145,
@@ -101,17 +128,21 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('Amount',
-                        style: TextStyle(color: kMutedColor, fontSize: 18)),
+                    const Text(
+                      'Amount',
+                      style: TextStyle(color: kMutedColor, fontSize: 18),
+                    ),
                     TextField(
                       controller: _amount,
                       textAlign: TextAlign.center,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 29,
-                          fontWeight: FontWeight.w700),
+                        color: Colors.white,
+                        fontSize: 29,
+                        fontWeight: FontWeight.w700,
+                      ),
                       decoration: const InputDecoration(
                         border: InputBorder.none,
                         hintText: 'RM 0.00',
@@ -122,9 +153,14 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 ),
               ),
               const SizedBox(height: 14),
-              const Text('Category',
-                  style: TextStyle(
-                      color: kMutedColor, fontSize: 18, fontWeight: FontWeight.w700)),
+              const Text(
+                'Category',
+                style: TextStyle(
+                  color: kMutedColor,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
               const SizedBox(height: 10),
               Wrap(
                 spacing: 10,
@@ -140,7 +176,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     .toList(),
               ),
               const SizedBox(height: 18),
-              _DarkInput(label: 'Note', controller: _note, hint: 'What was it for?'),
+              _DarkInput(
+                label: 'Note',
+                controller: _note,
+                hint: 'What was it for?',
+              ),
               const SizedBox(height: 14),
               _DatePicker(
                 date: _date,
@@ -153,8 +193,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   backgroundColor: kPurpleColor,
                   minimumSize: const Size.fromHeight(56),
                 ),
-                child: const Text('Save transaction',
-                    style: TextStyle(fontWeight: FontWeight.w700)),
+                child: const Text(
+                  'Save transaction',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
               ),
             ],
           ),
@@ -181,13 +223,15 @@ class _SegmentedChoice extends StatelessWidget {
       child: Row(
         children: [
           _Segment(
-              text: 'Spent',
-              active: selected == EntryType.expense,
-              onTap: () => onSelected(EntryType.expense)),
+            text: 'Spent',
+            active: selected == EntryType.expense,
+            onTap: () => onSelected(EntryType.expense),
+          ),
           _Segment(
-              text: 'Income',
-              active: selected == EntryType.income,
-              onTap: () => onSelected(EntryType.income)),
+            text: 'Income',
+            active: selected == EntryType.income,
+            onTap: () => onSelected(EntryType.income),
+          ),
         ],
       ),
     );
@@ -195,7 +239,11 @@ class _SegmentedChoice extends StatelessWidget {
 }
 
 class _Segment extends StatelessWidget {
-  const _Segment({required this.text, required this.active, required this.onTap});
+  const _Segment({
+    required this.text,
+    required this.active,
+    required this.onTap,
+  });
 
   final String text;
   final bool active;
@@ -214,11 +262,14 @@ class _Segment extends StatelessWidget {
             color: active ? kPurpleColor : Colors.transparent,
             borderRadius: BorderRadius.circular(11),
           ),
-          child: Text(text,
-              style: TextStyle(
-                  color: active ? Colors.white : kMutedColor,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700)),
+          child: Text(
+            text,
+            style: TextStyle(
+              color: active ? Colors.white : kMutedColor,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ),
       ),
     );
@@ -252,20 +303,24 @@ class _CategoryButton extends StatelessWidget {
               decoration: BoxDecoration(
                 color: selected ? kPurpleColor : kCardBlackColor,
                 border: Border.all(
-                    color: selected ? kPurpleLightColor : Colors.transparent),
+                  color: selected ? kPurpleLightColor : Colors.transparent,
+                ),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(categoryIcon(label), color: Colors.white, size: 30),
             ),
             const SizedBox(height: 4),
-            Text(label,
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                    color: selected ? Colors.white : kMutedColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600)),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: selected ? Colors.white : kMutedColor,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
         ),
       ),
@@ -289,9 +344,14 @@ class _DarkInput extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: const TextStyle(
-                color: kMutedColor, fontSize: 18, fontWeight: FontWeight.w700)),
+        Text(
+          label,
+          style: const TextStyle(
+            color: kMutedColor,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         const SizedBox(height: 7),
         TextField(
           controller: controller,
@@ -305,7 +365,10 @@ class _DarkInput extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: kPurpleLightColor, width: 1.5),
+              borderSide: const BorderSide(
+                color: kPurpleLightColor,
+                width: 1.5,
+              ),
             ),
           ),
         ),
@@ -325,21 +388,28 @@ class _DatePicker extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Date',
-            style: TextStyle(
-                color: kMutedColor, fontSize: 18, fontWeight: FontWeight.w700)),
+        const Text(
+          'Date',
+          style: TextStyle(
+            color: kMutedColor,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         const SizedBox(height: 7),
         InkWell(
           onTap: () async {
+            final now = DateTime.now();
+            final today = DateTime(now.year, now.month, now.day);
             final selected = await showDatePicker(
               context: context,
               initialDate: date,
               firstDate: DateTime(2020),
-              lastDate: DateTime(2035),
+              lastDate: today,
             );
             if (selected != null && context.mounted) {
               onSelected(selected);
-            } 
+            }
           },
           borderRadius: BorderRadius.circular(13),
           child: Container(
@@ -351,8 +421,10 @@ class _DatePicker extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Text(fullDate(date),
-                    style: const TextStyle(color: Colors.white, fontSize: 16)),
+                Text(
+                  fullDate(date),
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                ),
                 const Spacer(),
                 const Icon(Icons.calendar_month_outlined, color: kMutedColor),
               ],
