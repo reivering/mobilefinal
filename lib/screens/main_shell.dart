@@ -49,10 +49,7 @@ class _BudgetShellState extends State<BudgetShell> {
       ),
       SavingsScreen(onNavigate: _goTo),
     ];
-    return IndexedStack(
-      index: _page,
-      children: pages,
-    );
+    return IndexedStack(index: _page, children: pages);
   }
 }
 
@@ -90,7 +87,6 @@ class AppFrame extends StatelessWidget {
   }
 }
 
-
 class _BottomBar extends StatelessWidget {
   const _BottomBar({required this.selectedPage, required this.onNavigate});
 
@@ -104,33 +100,52 @@ class _BottomBar extends StatelessWidget {
       color: kCanvasColor,
       padding: const EdgeInsets.fromLTRB(31, 5, 31, 11),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _NavIcon(
+                  icon: Icons.home_outlined,
+                  active: selectedPage == 0,
+                  onTap: () => onNavigate(0),
+                ),
+                _NavIcon(
+                  icon: Icons.bar_chart_rounded,
+                  active: selectedPage == 3,
+                  onTap: () => onNavigate(3),
+                ),
+              ],
+            ),
+          ),
           _NavIcon(
-              icon: Icons.home_outlined,
-              active: selectedPage == 0,
-              onTap: () => onNavigate(0)),
-          _NavIcon(
-              icon: Icons.add,
-              active: selectedPage == 1,
-              isAdd: true,
-              onTap: () => onNavigate(1)),
-          _NavIcon(
-              icon: Icons.sync,
-              active: selectedPage == 2,
-              onTap: () => onNavigate(2)),
-          _NavIcon(
-              icon: Icons.bar_chart_rounded,
-              active: selectedPage == 3,
-              onTap: () => onNavigate(3)),
-          _NavIcon(
-              icon: Icons.person_outline_rounded,
-              active: selectedPage == 4,
-              onTap: () => onNavigate(4)),
-          _NavIcon(
-              icon: Icons.savings_outlined,
-              active: selectedPage == 5,
-              onTap: () => onNavigate(5)),
+            icon: Icons.add,
+            active: selectedPage == 1,
+            isAdd: true,
+            onTap: () => onNavigate(1),
+          ),
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _NavIcon(
+                  icon: Icons.sync,
+                  active: selectedPage == 2,
+                  onTap: () => onNavigate(2),
+                ),
+                _NavIcon(
+                  icon: Icons.savings_outlined,
+                  active: selectedPage == 5,
+                  onTap: () => onNavigate(5),
+                ),
+                _NavIcon(
+                  icon: Icons.person_outline_rounded,
+                  active: selectedPage == 4,
+                  onTap: () => onNavigate(4),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -159,8 +174,10 @@ class _NavIcon extends StatelessWidget {
         child: Container(
           height: 50,
           width: 50,
-          decoration:
-              const BoxDecoration(color: kPurpleColor, shape: BoxShape.circle),
+          decoration: const BoxDecoration(
+            color: kPurpleColor,
+            shape: BoxShape.circle,
+          ),
           child: const Icon(Icons.add, color: Colors.white, size: 32),
         ),
       );
@@ -168,7 +185,7 @@ class _NavIcon extends StatelessWidget {
     return IconButton(
       onPressed: onTap,
       icon: Icon(icon, size: 30),
-      color: active ? Colors.white: kPurpleLightColor,
+      color: active ? Colors.white : kPurpleLightColor,
     );
   }
 }
