@@ -69,17 +69,58 @@ class SavingsScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      money(current, decimals: true),
-                      style: const TextStyle(
-                        color: kGreenColor,
-                        fontSize: 30,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const Text(
-                      'actually transferred to savings',
-                      style: TextStyle(color: kMutedColor, fontSize: 15),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                store.monthlySavingsGoal > 0
+                                    ? money(
+                                        store.monthlySavingsGoal,
+                                        decimals: true,
+                                      )
+                                    : 'Not set',
+                                style: const TextStyle(
+                                  color: kPurpleLightColor,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const Text(
+                                'monthly goal',
+                                style: TextStyle(
+                                  color: kMutedColor,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                money(current, decimals: true),
+                                style: const TextStyle(
+                                  color: kGreenColor,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const Text(
+                                'transferred',
+                                style: TextStyle(
+                                  color: kMutedColor,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
