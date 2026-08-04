@@ -64,8 +64,8 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 25),
-              const Text(
-                'Recent',
+              Text(
+                'Recent  ·  amounts in RM',
                 style: TextStyle(
                   color: kMutedColor,
                   fontSize: 18,

@@ -31,17 +31,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     super.dispose();
   }
 
-  List<String> get _categories => _type == EntryType.expense
-      ? const [
-          'Food',
-          'Bills',
-          'Phone',
-          'Transport',
-          'Rent',
-          'Entertainment',
-          'Health',
-        ]
-      : const ['Savings', 'Salary', 'Investment', 'Part-time'];
+  List<String> get _categories => transactionCategories(_type);
 
   void _setType(EntryType type) {
     setState(() {
@@ -145,7 +135,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                       ),
                       decoration: const InputDecoration(
                         border: InputBorder.none,
-                        hintText: 'RM 0.00',
+                        prefixText: 'RM ',
+                        prefixStyle: TextStyle(
+                          color: Colors.white,
+                          fontSize: 29,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        hintText: '0.00',
                         hintStyle: TextStyle(color: Colors.white38),
                       ),
                     ),

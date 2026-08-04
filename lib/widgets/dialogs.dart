@@ -10,21 +10,11 @@ import '../providers/budget_store.dart';
 Future<void> showEditEntry(BuildContext context, LedgerEntry entry) async {
   final note = TextEditingController(text: entry.title);
   final amount = TextEditingController(text: entry.amount.toString());
+  var type = entry.type;
   var category = entry.category;
 
-  const categories = [
-    'Food',
-    'Bills',
-    'Phone',
-    'Transport',
-    'Rent',
-    'Entertainment',
-    'Health',
-    'Subscription',
-  ];
-
-  if (!categories.contains(category)) {
-    category = categories.first;
+  if (!transactionCategories(type).contains(category)) {
+    category = transactionCategories(type).first;
   }
 
   await showDialog(
@@ -50,13 +40,52 @@ Future<void> showEditEntry(BuildContext context, LedgerEntry entry) async {
                 decimal: true,
               ),
               style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(labelText: 'Amount'),
+              decoration: const InputDecoration(
+                labelText: 'Amount',
+                prefixText: 'RM ',
+                prefixStyle: TextStyle(color: Colors.white),
+              ),
             ),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Type',
+                style: TextStyle(color: kMutedColor, fontSize: 14),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Expanded(
+                  child: _EditTypeButton(
+                    label: 'Spent',
+                    selected: type == EntryType.expense,
+                    onTap: () => setState(() {
+                      type = EntryType.expense;
+                      category = transactionCategories(type).first;
+                    }),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _EditTypeButton(
+                    label: 'Income',
+                    selected: type == EntryType.income,
+                    onTap: () => setState(() {
+                      type = EntryType.income;
+                      category = transactionCategories(type).first;
+                    }),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
             DropdownButton<String>(
               value: category,
               dropdownColor: const Color(0xFF302035),
               isExpanded: true,
-              items: categories
+              items: transactionCategories(type)
                   .map(
                     (item) => DropdownMenuItem(value: item, child: Text(item)),
                   )
@@ -80,6 +109,7 @@ Future<void> showEditEntry(BuildContext context, LedgerEntry entry) async {
                     title: note.text.trim(),
                     amount: value,
                     category: category,
+                    type: type,
                   ),
                 );
                 Navigator.pop(dialogContext);
@@ -93,6 +123,38 @@ Future<void> showEditEntry(BuildContext context, LedgerEntry entry) async {
   );
   note.dispose();
   amount.dispose();
+}
+
+class _EditTypeButton extends StatelessWidget {
+  const _EditTypeButton({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected ? kPurpleColor : kCanvasColor,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: selected ? kPurpleLightColor : Colors.transparent,
+          ),
+        ),
+        child: Text(label, style: const TextStyle(color: Colors.white)),
+      ),
+    );
+  }
 }
 
 /// Updated Figma Bottom-Sheet Dialog for Adding & Editing Subscriptions (With Category Selection)
@@ -471,7 +533,7 @@ Future<void> showSubscriptionDialog(
                       ),
                       Switch(
                         value: remindMe,
-                        activeColor: Colors.white,
+                        activeThumbColor: Colors.white,
                         activeTrackColor: kPurpleColor,
                         onChanged: (val) => setState(() => remindMe = val),
                       ),

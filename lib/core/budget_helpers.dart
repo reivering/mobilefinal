@@ -1,14 +1,35 @@
 import 'package:flutter/material.dart';
 import 'constants.dart';
+import '../models/budget_models.dart';
 
 const _shortMonths = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
 ];
 
 const _fullMonths = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ];
 
 IconData categoryIcon(String category) {
@@ -65,6 +86,20 @@ Color getCategoryColor(String category) {
     default:
       return kPurpleLightColor;
   }
+}
+
+List<String> transactionCategories(EntryType type) {
+  return type == EntryType.expense
+      ? const [
+          'Food',
+          'Bills',
+          'Phone',
+          'Transport',
+          'Rent',
+          'Entertainment',
+          'Health',
+        ]
+      : const ['Savings', 'Salary', 'Investment', 'Part-time'];
 }
 
 String money(double value, {bool decimals = false}) {
