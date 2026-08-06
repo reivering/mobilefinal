@@ -21,6 +21,9 @@ if ! command -v flutter >/dev/null 2>&1; then
     mv "${FLUTTER_ROOT}.tmp/flutter" "$FLUTTER_ROOT"
     rm -rf "${FLUTTER_ROOT}.tmp"
   fi
+  # Vercel may restore this cache with ownership different from the build user.
+  # Flutter invokes Git internally, so explicitly trust the cached SDK checkout.
+  git config --global --add safe.directory "${FLUTTER_ROOT}"
   export PATH="${FLUTTER_ROOT}/bin:${PATH}"
 fi
 
