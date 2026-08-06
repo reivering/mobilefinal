@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'core/backend_config.dart';
@@ -24,7 +25,7 @@ class BudgetTrackerApp extends StatelessWidget {
       title: 'Budget tracker',
       debugShowCheckedModeBanner: false,
       theme: theme,
-      home: !BackendConfig.hasClerk
+      home: !kIsWeb && !BackendConfig.hasClerk
           ? const _BackendSetupScreen()
           : const AuthGate(child: BudgetShell()),
     );
